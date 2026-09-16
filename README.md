@@ -2,13 +2,28 @@
 
 ![RKE2](https://img.shields.io/badge/RKE2-v1.35.5%2Brke2r2-326CE5?logo=kubernetes&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-Highly%20Available-326CE5?logo=kubernetes&logoColor=white)
-![Platform](https://img.shields.io/badge/Platform-Ubuntu%2024.04-E95420?logo=ubuntu&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-systemd%20Linux-informational?logo=linux&logoColor=white)
 ![Security](https://img.shields.io/badge/Security-Sanitized%20Examples-success)
 ![Environment](https://img.shields.io/badge/Environment-Air--Gapped-informational)
 
 A portfolio-safe reference implementation derived from hands-on operation of a nine-node RKE2 environment: three embedded-etcd control-plane nodes and six workers. It demonstrates high availability, offline installation, audit logging, metrics exposure, controlled upgrades, configuration validation, snapshot recovery, and security-conscious documentation without publishing company infrastructure.
 
 > This is an educational reference, not a drop-in production environment. Replace every placeholder, review current RKE2 guidance, test in a non-production environment, and obtain peer approval before applying changes.
+
+## New to RKE2?
+
+Start with [RKE2 for junior DevOps engineers](docs/start-here.md). It explains servers, workers, etcd, quorum, the fixed endpoint, ports, tokens, TLS SANs and optional DNS before you run commands.
+
+| Goal | Recommended document |
+|---|---|
+| Understand the system | [Start here](docs/start-here.md) |
+| Install with guided prompts | [Quick start](docs/quickstart.md) |
+| Practice a complete example | [Lab deployment](docs/lab-deployment.md) |
+| Understand every included setting | [Configuration reference](docs/configuration-reference.md) |
+| Configure the fixed endpoint | [Load-balancer setup](docs/load-balancer.md) |
+| Prepare offline files safely | [Air-gap artifacts](docs/air-gap-artifacts.md) |
+| Check supported assumptions | [Compatibility](docs/compatibility.md) |
+| Diagnose a problem | [Troubleshooting](docs/troubleshooting.md) |
 
 ## 1. Project overview
 
@@ -84,6 +99,7 @@ See [Architecture](docs/architecture.md) for component and traffic details.
 ├── inventory/              Placeholder-only cluster inventory
 ├── scripts/                Guarded installation and operations tooling
 ├── tests/                  Syntax, YAML, link and confidentiality checks
+├── .github/workflows/      Automated repository validation
 ├── .gitleaks.toml          Secret-scanning policy
 ├── CONTRIBUTING.md         Safe contribution workflow
 ├── SECURITY.md             Repository disclosure and secret-handling policy
@@ -116,6 +132,16 @@ Review the current RKE2 support matrix before selecting Kubernetes, OS, kernel, 
 5. Run `sudo ./scripts/preflight-check.sh`.
 
 ### Generate configuration and install nodes
+
+For the easiest path, use the guided wizard:
+
+```bash
+sudo ./scripts/setup-node.sh
+```
+
+It asks for the role and endpoint, generates and displays the configuration, runs validation, and stops before installation unless `--apply` is explicitly used.
+
+For repeatable automation, use non-interactive options as shown below.
 
 The same generator supports any number of servers and workers. On the first server, replace the example IP with your load-balancer VIP or other fixed registration address:
 
@@ -171,7 +197,7 @@ For every change: define the expected outcome and failure signal, prepare rollba
 
 ## 10. Validation and health checks
 
-Run repository checks with `./tests/run-all.sh` and cluster checks with `sudo ./scripts/validate-cluster.sh`. The latter covers API readiness, node state, system pods, storage objects and recent warning events; it does not replace application-specific smoke tests.
+Run repository checks with `./tests/run-all.sh` and cluster checks with `sudo ./scripts/validate-cluster.sh`. The repository workflow also runs these checks in GitHub Actions. Cluster validation covers API readiness, node state, system pods, storage objects and recent warning events; it does not replace application-specific smoke tests.
 
 ## 11. Upgrade and rollback
 
@@ -238,11 +264,11 @@ RKE2 and Kubernetes architecture, embedded etcd, Linux preparation, air-gap arti
 ## 18. Future improvements
 
 - Automate node configuration with Ansible
-- Add CI for ShellCheck, Gitleaks, YAML linting and Markdown links
 - Add signed checksum-manifest verification and SBOM generation
 - Add Sonobuoy/conformance procedures
 - Implement encrypted remote snapshots and scheduled restore drills
 - Add CIS evaluation and policy-as-code examples
+- Pin third-party CI actions to reviewed commit SHAs
 
 ## Junior engineer path
 
@@ -254,4 +280,4 @@ This repository was built from real operational experience and deliberately sani
 
 ## License
 
-Apache License 2.0 is recommended. See [the license recommendation](LICENSE-RECOMMENDATION.md); add the official license text only after owner approval.
+Licensed under the [Apache License 2.0](LICENSE). See [the license rationale](LICENSE-RECOMMENDATION.md).

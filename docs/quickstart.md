@@ -1,5 +1,30 @@
 # Quick start
 
+## Recommended: guided setup
+
+Run this from the cloned repository on each node:
+
+```bash
+sudo ./scripts/setup-node.sh
+```
+
+The wizard explains its choices, writes the configuration, displays it, validates the host and performs an installer dry run. It does not install RKE2 unless you run it with `--apply`.
+
+Non-interactive examples:
+
+```bash
+# First server
+sudo ./scripts/setup-node.sh --role init --fixed-address 198.51.100.10
+
+# Additional server
+sudo ./scripts/setup-node.sh --role join --fixed-address 198.51.100.10
+
+# Worker
+sudo ./scripts/setup-node.sh --role agent --fixed-address 198.51.100.10
+```
+
+Continue below if you want to understand and run every underlying command manually.
+
 ## Prerequisites
 
 - Supported 64-bit Linux hosts using systemd
@@ -10,9 +35,13 @@
 - Passwordless administrative access or an equivalent configuration-management workflow
 - A securely generated RKE2 token distributed outside Git
 
+Use [Preparing air-gap artifacts](air-gap-artifacts.md) to download, verify, transfer and stage matching files. Configure the stable endpoint using [Load-balancer setup](load-balancer.md).
+
 ## Values used in the examples
 
 The documentation-only address `198.51.100.10` represents the fixed load-balancer or VIP. Replace it everywhere. DNS is optional. If you use a DNS record, add it as an additional `--tls-san` on every server; do not add a made-up DNS name.
+
+Each command section states where it runs. Never run all commands simultaneously across every server.
 
 ## 1. Prepare every node
 
@@ -95,3 +124,15 @@ sudo /var/lib/rancher/rke2/bin/kubectl \
 4. Add workers in controlled batches and verify scheduling, networking and storage.
 
 Never execute an example against production without peer review and an approved rollback plan.
+
+## Common mistakes
+
+| Mistake | Correct action |
+|---|---|
+| Running `init` on several nodes | Run it on the first server only |
+| Using different critical options between servers | Keep cluster-wide settings identical |
+| Adding DNS when no record exists | Omit the optional DNS SAN |
+| Continuing after a failed validation | Stop, diagnose and restore health first |
+| Joining all servers simultaneously | Join and validate one server at a time |
+| Committing the token or kubeconfig | Deliver them through an approved secure channel |
+| Mixing RKE2 artifact versions | Use matching binary, image and checksum files |

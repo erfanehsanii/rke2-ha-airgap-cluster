@@ -2,7 +2,7 @@
 
 ## Design summary
 
-The reference platform uses three RKE2 server nodes and multiple agent nodes. Each server participates in embedded etcd and runs the Kubernetes control plane. A stable TCP endpoint fronts both the Kubernetes API and RKE2 registration service. The design continues serving API requests after a single server failure and retains etcd quorum after one etcd member fails.
+The source environment used three RKE2 server nodes and multiple agent nodes. The reusable configuration supports any odd server count and zero or more workers. Each server participates in embedded etcd and runs the Kubernetes control plane. A stable TCP endpoint fronts both the Kubernetes API and RKE2 registration service. A three-server design continues serving API requests after one server failure and retains etcd quorum after one etcd member fails.
 
 ```mermaid
 flowchart TB
@@ -52,7 +52,7 @@ This table is a design guide, not a universal firewall policy. RKE2 networking r
 
 ### Initial server
 
-The initial server uses `cluster-init: true` to create embedded etcd. It is special only during bootstrap; afterward it is one member of a three-node quorum.
+The initial server omits the `server:` setting and creates the first embedded-etcd member. It is special only during bootstrap; afterward it is an ordinary member of the etcd quorum.
 
 ### Joining servers
 
@@ -88,7 +88,7 @@ The trusted checksum manifest must travel through a channel that is independent 
 | One server fails | API remains available; etcd retains quorum | Repair or replace the member without restarting healthy servers |
 | One worker fails | Workloads may reschedule if storage and policy allow | Diagnose, drain if reachable, repair and rejoin |
 | Load-balancer member fails | VIP/service should remain available when LB itself is HA | Validate failover and remaining backend health |
-| Two etcd members fail | Quorum is lost | Stop unsafe retries and invoke the tested recovery plan |
+| A majority of etcd members fail | Quorum is lost | Stop unsafe retries and invoke the tested recovery plan |
 | Offline artifact corrupt | Installation or startup should fail validation | Reject the artifact and reacquire from trusted source |
 
 ## Storage boundary

@@ -1,0 +1,36 @@
+name: Validate repository
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes shellcheck
+          python3 -m pip install --disable-pip-version-check pyyaml yamllint
+          npm install --global @mermaid-js/mermaid-cli
+
+      - name: Run repository tests
+        run: ./tests/run-all.sh
+
+      - name: Run YAML lint
+        run: yamllint --config-file .yamllint.yml .
+
+      - name: Verify file manifest
+        run: sha256sum --check MANIFEST.sha256
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2

@@ -14,7 +14,7 @@
 
 - Kubernetes `/readyz` returns successful checks.
 - All expected nodes are `Ready`.
-- Embedded etcd has three healthy members.
+- Embedded etcd has the expected healthy member count and retains quorum.
 - CoreDNS, Canal, kube-proxy and metrics-server are healthy.
 - No unexpected warning events or pending pods exist.
 - Persistent volumes remain bound.
