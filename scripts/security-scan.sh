@@ -3,6 +3,7 @@ set -Eeuo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT_DIR"
+command -v rg >/dev/null 2>&1 || { printf 'ERROR: ripgrep (rg) is required\n' >&2; exit 1; }
 fail=0
 scan() {
   local description=$1 pattern=$2

@@ -10,6 +10,12 @@ fi
 tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
 
+cat >"$tmp_dir/puppeteer.json" <<'JSON'
+{
+  "args": ["--no-sandbox"]
+}
+JSON
+
 python3 - "$ROOT_DIR" "$tmp_dir" <<'PY'
 from pathlib import Path
 import re
@@ -31,6 +37,10 @@ PY
 count=0
 for diagram in "$tmp_dir"/*.mmd; do
   count=$((count + 1))
-  mmdc --input "$diagram" --output "${diagram%.mmd}.svg" --quiet
+  mmdc \
+    --input "$diagram" \
+    --output "${diagram%.mmd}.svg" \
+    --puppeteerConfigFile "$tmp_dir/puppeteer.json" \
+    --quiet
 done
 printf 'PASS rendered %d Mermaid diagrams\n' "$count"
