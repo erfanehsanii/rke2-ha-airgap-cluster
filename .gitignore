@@ -1,0 +1,47 @@
+# Credentials and kubeconfigs
+token
+*.token
+rke2.yaml
+kubeconfig*
+*.kubeconfig
+registries.yaml
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
+
+# Certificates and private keys
+*.key
+*.pem
+*.crt
+*.cer
+*.p12
+*.pfx
+tls/
+certs/
+
+# Backups and offline artifacts
+*.snapshot
+snapshots/
+backups/
+*.tar
+*.tar.gz
+*.tgz
+*.tar.zst
+*.zip
+rke2
+rke2-images.*
+
+# Generated and runtime data
+rke2-discovery-*/
+rke2-confidential-review-*/
+report/
+.restricted-staging/
+*.log
+tmp/
+.idea/
+.vscode/
+
+!*.example.yaml
+!examples/**/*.crt.example

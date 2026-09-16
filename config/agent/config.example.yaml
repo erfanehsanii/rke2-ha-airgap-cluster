@@ -1,0 +1,10 @@
+server: https://<CONTROL_PLANE_VIP>:9345
+token-file: /etc/rancher/rke2/token
+node-name: <WORKER_HOSTNAME>
+
+kubelet-arg:
+  - container-log-max-size=50Mi
+  - container-log-max-files=5
+
+kube-proxy-arg:
+  - metrics-bind-address=0.0.0.0:10249

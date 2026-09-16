@@ -1,0 +1,36 @@
+# First control-plane node only.
+cluster-init: true
+token-file: /etc/rancher/rke2/token
+node-name: <INITIAL_CONTROL_PLANE_HOSTNAME>
+
+cni:
+  - canal
+
+tls-san:
+  - <CONTROL_PLANE_VIP>
+  - <CONTROL_PLANE_DNS>
+  - <CONTROL_PLANE_01_IP>
+  - <CONTROL_PLANE_02_IP>
+  - <CONTROL_PLANE_03_IP>
+
+write-kubeconfig-mode: "0600"
+etcd-expose-metrics: true
+
+kube-apiserver-arg:
+  - audit-log-path=/var/lib/rancher/rke2/server/logs/audit.log
+  - audit-log-maxage=30
+  - audit-log-maxbackup=10
+  - audit-log-maxsize=100
+
+kubelet-arg:
+  - container-log-max-size=50Mi
+  - container-log-max-files=5
+
+kube-controller-manager-arg:
+  - metrics-bind-address=0.0.0.0
+
+kube-scheduler-arg:
+  - bind-address=0.0.0.0
+
+kube-proxy-arg:
+  - metrics-bind-address=0.0.0.0:10249

@@ -1,0 +1,13 @@
+title = "RKE2 portfolio secret-scanning policy"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Documented placeholders are intentionally public"
+regexes = [
+  '''<CONTROL_PLANE_[A-Z0-9_]+>''',
+  '''<WORKER_[A-Z0-9_]+>''',
+  '''<SECRET_FROM_SECURE_STORE>''',
+  '''<YOUR_DOMAIN>'''
+]
