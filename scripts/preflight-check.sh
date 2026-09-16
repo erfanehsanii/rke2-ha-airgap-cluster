@@ -2,10 +2,15 @@
 set -Eeuo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-# shellcheck source=lib/common.sh
+# shellcheck source=scripts/lib/common.sh
 source "$ROOT_DIR/scripts/lib/common.sh"
 
 failures=0
+token_mode_secure() {
+  local mode
+  mode=$(stat -c %a /etc/rancher/rke2/token 2>/dev/null) || return 1
+  [[ "$mode" == 600 || "$mode" == 400 ]]
+}
 check() {
   local description=$1; shift
   if "$@" >/dev/null 2>&1; then printf 'PASS  %s\n' "$description"
@@ -20,7 +25,7 @@ check "IPv4 forwarding enabled" test "$(sysctl -n net.ipv4.ip_forward 2>/dev/nul
 check "bridge IPv4 filtering enabled" test "$(sysctl -n net.bridge.bridge-nf-call-iptables 2>/dev/null)" = 1
 check "RKE2 configuration directory exists" test -d /etc/rancher/rke2
 check "RKE2 token exists" test -s /etc/rancher/rke2/token
-check "RKE2 token is not group/world readable" bash -c 'mode=$(stat -c %a /etc/rancher/rke2/token 2>/dev/null); [[ "$mode" == 600 || "$mode" == 400 ]]'
+check "RKE2 token is not group/world readable" token_mode_secure
 check "offline RKE2 binary archive exists" test -s /opt/rke2-offline-bundle/rke2/rke2.linux-amd64.tar.gz
 check "offline RKE2 image archive exists" test -s /opt/rke2-offline-bundle/rke2/rke2-images.linux-amd64.tar.zst
 

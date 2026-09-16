@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-# shellcheck source=lib/common.sh
+# shellcheck source=scripts/lib/common.sh
 source "$ROOT_DIR/scripts/lib/common.sh"
 
 usage() {
@@ -57,7 +57,7 @@ choose_role() {
   read -r answer
   case "$answer" in
     1) role=init ;;
-    2) role=join ;;
+    2) role="join" ;;
     3) role=agent ;;
     *) die 'role choice must be 1, 2, or 3' ;;
   esac
