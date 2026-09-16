@@ -1,31 +1,38 @@
 # Second and subsequent control-plane nodes.
-server: https://<CONTROL_PLANE_VIP>:9345
+server: https://<FIXED_REGISTRATION_ADDRESS>:9345
 token-file: /etc/rancher/rke2/token
-node-name: <CONTROL_PLANE_HOSTNAME>
+
+# OPTIONAL: omit this key to use the operating-system hostname.
+# node-name: rke2-server-02
 
 cni:
+  # OPTIONAL override: keep this identical across all servers.
   - canal
 
 tls-san:
-  - <CONTROL_PLANE_VIP>
-  - <CONTROL_PLANE_DNS>
-  - <CONTROL_PLANE_01_IP>
-  - <CONTROL_PLANE_02_IP>
-  - <CONTROL_PLANE_03_IP>
+  # REQUIRED: use the same stable address as the bootstrap server.
+  - <FIXED_REGISTRATION_ADDRESS>
+  # OPTIONAL: add DNS only when a DNS record exists and will be used.
+  # - rke2-api.example.com
 
+# OPTIONAL hardening: keep the administrator kubeconfig root-only.
 write-kubeconfig-mode: "0600"
+# OPTIONAL observability: expose only to a trusted monitoring network.
 etcd-expose-metrics: true
 
+# OPTIONAL: keep API audit settings consistent across servers.
 kube-apiserver-arg:
   - audit-log-path=/var/lib/rancher/rke2/server/logs/audit.log
   - audit-log-maxage=30
   - audit-log-maxbackup=10
   - audit-log-maxsize=100
 
+# OPTIONAL: container log rotation settings.
 kubelet-arg:
   - container-log-max-size=50Mi
   - container-log-max-files=5
 
+# OPTIONAL observability: restrict these listeners with host/network controls.
 kube-controller-manager-arg:
   - metrics-bind-address=0.0.0.0
 

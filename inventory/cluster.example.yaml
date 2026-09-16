@@ -1,21 +1,17 @@
 cluster:
   name: <CLUSTER_NAME>
   rke2_version: v1.35.5+rke2r2
-  registration_endpoint: https://<CONTROL_PLANE_VIP>:9345
-  api_endpoint: https://<CONTROL_PLANE_VIP>:6443
+  registration_endpoint: https://<FIXED_REGISTRATION_ADDRESS>:9345
+  api_endpoint: https://<FIXED_REGISTRATION_ADDRESS>:6443
   cni: canal
 
 nodes:
   control_plane:
-    - hostname: <CONTROL_PLANE_01_HOSTNAME>
-      address: <CONTROL_PLANE_01_IP>
+    # Repeat this item for every server. Use an odd count for embedded etcd.
+    - hostname: <SERVER_HOSTNAME>
+      address: <SERVER_IP>
       bootstrap: true
-    - hostname: <CONTROL_PLANE_02_HOSTNAME>
-      address: <CONTROL_PLANE_02_IP>
-    - hostname: <CONTROL_PLANE_03_HOSTNAME>
-      address: <CONTROL_PLANE_03_IP>
   workers:
-    - hostname: <WORKER_01_HOSTNAME>
-      address: <WORKER_01_IP>
-    - hostname: <WORKER_02_HOSTNAME>
-      address: <WORKER_02_IP>
+    # Repeat this item for zero or more workers.
+    - hostname: <WORKER_HOSTNAME>
+      address: <WORKER_IP>

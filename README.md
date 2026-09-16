@@ -59,15 +59,15 @@ This repository turns those concerns into repeatable configuration, scripts, che
 
 ```mermaid
 flowchart TB
-    Client["Operators and automation"] --> LB["HA TCP endpoint<br/>6443 API / 9345 registration"]
-    LB --> CP["3 RKE2 server nodes"]
-    CP <--> ETCD["Embedded etcd quorum"]
-    WK["RKE2 worker nodes"] --> LB
-    CP --> CNI["Canal CNI"]
-    WK --> CNI
-    ART["Verified offline artifacts"] --> CP
-    ART --> WK
-    CP --> BKP["Encrypted off-node snapshots"]
+    USER["Operators and automation"] --> ENDPOINT["Fixed TCP endpoint"]
+    ENDPOINT --> SERVERS["Odd number of RKE2 servers"]
+    ENDPOINT --> WORKERS["Zero or more RKE2 workers"]
+    SERVERS --> ETCD["Embedded etcd quorum"]
+    SERVERS --> NETWORK["Canal cluster network"]
+    WORKERS --> NETWORK
+    ARTIFACTS["Verified offline artifacts"] --> SERVERS
+    ARTIFACTS --> WORKERS
+    SERVERS --> BACKUPS["Protected off-node snapshots"]
 ```
 
 The load balancer distributes API and registration traffic. Server nodes maintain Kubernetes control-plane components and embedded etcd. Worker nodes register through the stable endpoint, while offline artifacts avoid runtime dependence on public registries.
@@ -93,10 +93,11 @@ See [Architecture](docs/architecture.md) for component and traffic details.
 ## 6. Prerequisites
 
 - 64-bit Linux servers using systemd
-- Three server nodes for production-style etcd quorum
-- One or more worker nodes
+- An odd number of server nodes; three is the normal HA starting point
+- Zero or more worker nodes; add as many as capacity and scheduling require
 - A stable load-balancer/VIP for TCP `6443` and `9345`
-- Correct DNS and time synchronization
+- Working time synchronization
+- DNS for the fixed endpoint is optional; an IP/VIP can be used directly
 - Required RKE2 ports allowed only between intended network zones
 - Verified RKE2 binary and image archives available on every node
 - Secure out-of-band delivery for the RKE2 token
@@ -114,30 +115,43 @@ Review the current RKE2 support matrix before selecting Kubernetes, OS, kernel, 
 4. Place the RKE2 token at `/etc/rancher/rke2/token` with mode `0600` using a secure delivery mechanism.
 5. Run `sudo ./scripts/preflight-check.sh`.
 
-### Bootstrap and join nodes
+### Generate configuration and install nodes
 
-Copy [the initial-server example](config/server-init/config.example.yaml), replace every placeholder, and validate without applying:
+The same generator supports any number of servers and workers. On the first server, replace the example IP with your load-balancer VIP or other fixed registration address:
 
 ```bash
-sudo ./scripts/install-server.sh --role init --config /secure/path/server-init.yaml
+sudo ./scripts/generate-config.sh \
+  --role init \
+  --tls-san 198.51.100.10 \
+  --output /etc/rancher/rke2/config.yaml
+
+sudo ./scripts/install-server.sh \
+  --role init \
+  --config /etc/rancher/rke2/config.yaml
+
+# After reviewing the dry run:
+sudo ./scripts/install-server.sh \
+  --role init \
+  --config /etc/rancher/rke2/config.yaml \
+  --apply
 ```
 
-After review, repeat with `--apply`. Validate the first server before using [the joining-server example](config/server-join/config.example.yaml) on the next server. Join one server at a time. Use [the worker example](config/agent/config.example.yaml) and `install-agent.sh` to join workers.
+If you use DNS, add another `--tls-san rke2-api.example.com`; otherwise omit it. On every additional server, generate a `join` configuration using the same endpoint and SAN values. On every worker, generate an `agent` configuration. Join and validate one node at a time. The complete copy-paste sequence is in [Quick start](docs/quickstart.md).
 
 ## 8. Configuration guide
 
 | Setting | Purpose |
 |---|---|
-| `cluster-init` | Initializes embedded etcd on the first server only |
-| `server` | Stable registration endpoint used by joining nodes |
+| `server` | **Required on joining servers and workers; omitted on the first server.** Stable registration endpoint |
 | `token-file` | Reads the join token from a protected local file |
-| `tls-san` | Adds load-balancer and server identities to the API certificate |
-| `cni` | Selects Canal cluster networking |
-| `write-kubeconfig-mode` | Restricts administrative kubeconfig access |
-| `etcd-expose-metrics` | Enables etcd monitoring on a controlled network path |
-| `kube-apiserver-arg` | Configures audit-log location and rotation |
-| `kubelet-arg` | Limits container-log size and retention |
-| `kube-proxy-arg` | Exposes kube-proxy metrics for monitoring |
+| `tls-san` | **Required for the fixed endpoint.** Additional DNS names are optional |
+| `node-name` | **Optional.** When omitted, RKE2 uses the host name |
+| `cni` | Optional explicit selection; this project selects Canal |
+| `write-kubeconfig-mode` | Optional hardening; restricts administrative kubeconfig access |
+| `etcd-expose-metrics` | Optional observability feature; restrict its network exposure |
+| `kube-apiserver-arg` | Optional audit-log location and rotation settings |
+| `kubelet-arg` | Optional container-log size and retention limits |
+| `kube-proxy-arg` | Optional metrics listener; restrict port `10249` to monitoring sources |
 
 Never place a live token directly in an example file. Keep production inventory and endpoint values outside the public repository.
 

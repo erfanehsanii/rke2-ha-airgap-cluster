@@ -22,6 +22,12 @@ require_file /etc/rancher/rke2/token
 require_file /opt/rke2-offline-bundle/rke2/rke2.linux-amd64.tar.gz
 require_file /opt/rke2-offline-bundle/rke2/rke2-images.linux-amd64.tar.zst
 grep -Eq '<[A-Z0-9_]+>' "$config" && die "configuration still contains placeholders"
+if [[ "$role" == init ]] && grep -Eq '^[[:space:]]*server:' "$config"; then
+  die "init configuration must not contain server:"
+fi
+if [[ "$role" == join ]] && ! grep -Eq '^[[:space:]]*server:' "$config"; then
+  die "join configuration requires server:"
+fi
 
 if ((apply == 0)); then
   log "Validation complete; no changes made. Re-run with --apply to install."
@@ -30,7 +36,11 @@ fi
 require_root
 confirm_exact INSTALL_RKE2 "This installs and starts an RKE2 server using $config."
 install -d -m 0700 /etc/rancher/rke2 /var/lib/rancher/rke2/agent/images
-install -m 0600 "$config" /etc/rancher/rke2/config.yaml
+if [[ "$(readlink -f "$config")" != /etc/rancher/rke2/config.yaml ]]; then
+  install -m 0600 "$config" /etc/rancher/rke2/config.yaml
+else
+  chmod 0600 /etc/rancher/rke2/config.yaml
+fi
 install -m 0644 /opt/rke2-offline-bundle/rke2/rke2-images.linux-amd64.tar.zst /var/lib/rancher/rke2/agent/images/
 tar -xzf /opt/rke2-offline-bundle/rke2/rke2.linux-amd64.tar.gz -C /
 systemctl enable --now rke2-server

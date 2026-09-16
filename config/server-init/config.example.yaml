@@ -1,31 +1,37 @@
-# First control-plane node only.
-cluster-init: true
+# First server only. Do not add `server:` on the bootstrap node.
 token-file: /etc/rancher/rke2/token
-node-name: <INITIAL_CONTROL_PLANE_HOSTNAME>
+
+# OPTIONAL: omit this key to use the operating-system hostname.
+# node-name: rke2-server-01
 
 cni:
+  # OPTIONAL override: Canal is already the RKE2 default for this release.
   - canal
 
 tls-san:
-  - <CONTROL_PLANE_VIP>
-  - <CONTROL_PLANE_DNS>
-  - <CONTROL_PLANE_01_IP>
-  - <CONTROL_PLANE_02_IP>
-  - <CONTROL_PLANE_03_IP>
+  # REQUIRED: the stable IP or DNS name used by clients and joining nodes.
+  - <FIXED_REGISTRATION_ADDRESS>
+  # OPTIONAL: add DNS only when a DNS record exists and will be used.
+  # - rke2-api.example.com
 
+# OPTIONAL hardening: keep the administrator kubeconfig root-only.
 write-kubeconfig-mode: "0600"
+# OPTIONAL observability: expose only to a trusted monitoring network.
 etcd-expose-metrics: true
 
+# OPTIONAL: API audit-log rotation settings.
 kube-apiserver-arg:
   - audit-log-path=/var/lib/rancher/rke2/server/logs/audit.log
   - audit-log-maxage=30
   - audit-log-maxbackup=10
   - audit-log-maxsize=100
 
+# OPTIONAL: container log rotation settings.
 kubelet-arg:
   - container-log-max-size=50Mi
   - container-log-max-files=5
 
+# OPTIONAL observability: restrict these listeners with host/network controls.
 kube-controller-manager-arg:
   - metrics-bind-address=0.0.0.0
 

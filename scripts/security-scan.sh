@@ -11,7 +11,8 @@ scan() {
 }
 scan "Private key markers" 'BEGIN [A-Z ]*PRIVATE KEY'
 printf '\n### IPv4 addresses\n'
-if rg -n --hidden --glob '!.git/**' --glob '!scripts/security-scan.sh' '(^|[^0-9])([0-9]{1,3}\.){3}[0-9]{1,3}([^0-9]|$)' . | rg -v '0\.0\.0\.0|127\.0\.0\.1'; then
+if rg -n --hidden --glob '!.git/**' --glob '!scripts/security-scan.sh' '(^|[^0-9])([0-9]{1,3}\.){3}[0-9]{1,3}([^0-9]|$)' . \
+  | rg -v '0\.0\.0\.0|127\.0\.0\.1|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.'; then
   fail=1
 else
   printf 'No non-allowlisted matches\n'

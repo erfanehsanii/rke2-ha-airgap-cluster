@@ -1,10 +1,14 @@
-server: https://<CONTROL_PLANE_VIP>:9345
+server: https://<FIXED_REGISTRATION_ADDRESS>:9345
 token-file: /etc/rancher/rke2/token
-node-name: <WORKER_HOSTNAME>
 
+# OPTIONAL: omit this key to use the operating-system hostname.
+# node-name: rke2-worker-01
+
+# OPTIONAL: container log rotation settings.
 kubelet-arg:
   - container-log-max-size=50Mi
   - container-log-max-files=5
 
+# OPTIONAL observability: restrict port 10249 to trusted monitoring sources.
 kube-proxy-arg:
   - metrics-bind-address=0.0.0.0:10249
